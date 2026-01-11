@@ -1,5 +1,6 @@
 # Environment and configuration
-includes/config.php
+# Note: config.php is included with default localhost settings
+# Update it after deployment with your actual credentials
 .env
 .env.local
 
