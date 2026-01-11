@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+
+# Local config written by installer
+config/config.php
+config/.installed
+
+# Logs
+*.log
+
+# Uploads
+uploads/
+
+# IDE
+.vscode/
+.idea/

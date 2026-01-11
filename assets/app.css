@@ -1,0 +1,39 @@
+:root{
+  --bg:#0b0b0e;
+  --surface:#141420;
+  --surface2:#1b1b2a;
+  --text:#f5f7ff;
+  --muted:#a6aac0;
+  --primary:#e50914;
+  --primary2:#b8070f;
+  --border:rgba(255,255,255,.12);
+  --shadow:0 10px 30px rgba(0,0,0,.55);
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;background:radial-gradient(1200px 700px at 15% 10%,rgba(229,9,20,.22),transparent 60%),radial-gradient(900px 600px at 90% 0%,rgba(0,212,255,.10),transparent 65%),var(--bg);color:var(--text)}
+.container{max-width:960px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.card{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:clamp(16px,4vw,28px)}
+h1{margin:0 0 8px;font-size:clamp(20px,5vw,34px)}
+h2{margin:18px 0 10px;font-size:clamp(16px,3.6vw,22px);color:var(--text)}
+.muted{color:var(--muted);margin:0 0 16px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form-grid h2{grid-column:1/-1}
+label{display:grid;gap:8px;font-size:14px}
+label span{color:var(--muted)}
+input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--border);background:rgba(0,0,0,.25);color:var(--text);outline:none}
+input:focus,select:focus,textarea:focus{border-color:rgba(229,9,20,.75);box-shadow:0 0 0 3px rgba(229,9,20,.2)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:flex-end;margin-top:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 16px;border-radius:16px;border:1px solid rgba(229,9,20,.55);background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);color:#fff;text-decoration:none;font-weight:700;cursor:pointer}
+.btn-secondary{border-color:var(--border);background:rgba(255,255,255,.08)}
+.alert{padding:12px 14px;border-radius:16px;border:1px solid var(--border);margin:12px 0}
+.alert ul{margin:8px 0 0;padding-left:18px}
+.alert.success{border-color:rgba(70,211,105,.5);background:rgba(70,211,105,.12)}
+.alert.danger{border-color:rgba(244,6,18,.55);background:rgba(244,6,18,.12)}
+
+@media (max-width:720px){
+  .form-grid{grid-template-columns:1fr}
+  .actions{justify-content:stretch}
+  .btn{width:100%}
+}
