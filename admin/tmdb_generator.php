@@ -10,8 +10,11 @@ $message = '';
 $messageType = '';
 $contentData = null;
 
-// Get TMDB API key
+// Get TMDB API keys
 $tmdbApiKey = getSetting('tmdb_api_key', '');
+$tmdbApiKey1 = getSetting('tmdb_api_key_backup1', '');
+$tmdbApiKey2 = getSetting('tmdb_api_key_backup2', '');
+$tmdbApiKey3 = getSetting('tmdb_api_key_backup3', '');
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -355,6 +358,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 20px;
         }
         
+        .server-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .server-item {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        #search-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .search-result-card {
+            background: var(--surface-light);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            gap: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .search-result-card img {
+            width: 100px;
+            object-fit: cover;
+        }
+
+        .result-info {
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        .loading {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--text);
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .preview-poster {
             width: 100%;
             border-radius: 8px;
@@ -463,143 +524,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <i class="fas fa-exclamation-triangle"></i>
             <strong>TMDB API Key Required!</strong> Please add your TMDB API key in <a href="settings.php" style="color: var(--primary);">Settings</a> to use this feature.
         </div>
-        <?php endif; ?>
-        
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-search"></i> Fetch from TMDB</h2>
-            </div>
-            
-            <form method="POST" action="">
-                <input type="hidden" name="action" value="fetch_by_id">
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="content_type">Content Type</label>
-                        <select id="content_type" name="content_type" required>
-                            <option value="movie">Movie</option>
-                            <option value="tv">TV Series</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="tmdb_id">TMDB ID</label>
-                        <input type="text" id="tmdb_id" name="tmdb_id" placeholder="e.g., 550 for Fight Club" required>
-                        <small style="color: var(--text-secondary); display: block; margin-top: 5px;">
-                            Find ID on TMDB website URL (e.g., themoviedb.org/movie/<strong>550</strong>)
-                        </small>
-                    </div>
+        <?php else: ?>
+        <div id="tmdb-generator" class="tab-content active">
+            <!-- API Key Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-key"></i> API Key Management</h2>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-download"></i>
-                    Fetch Content
-                </button>
-            </form>
-        </div>
-        
-        <?php if ($contentData): ?>
-        <div class="card">
-            <div class="card-header">
-                <h2><i class="fas fa-eye"></i> Preview & Save</h2>
-            </div>
-            
-            <div class="preview-section">
-                <div class="preview-grid">
-                    <?php if (!empty($contentData['poster_path'])): ?>
-                    <img src="https://image.tmdb.org/t/p/w500<?php echo $contentData['poster_path']; ?>" 
-                         alt="Poster" class="preview-poster">
-                    <?php endif; ?>
-                    
-                    <div>
-                        <h3 style="margin-bottom: 10px;">
-                            <?php echo htmlspecialchars($contentData['title'] ?? $contentData['name'] ?? 'Untitled'); ?>
-                        </h3>
-                        <p style="color: var(--text-secondary); margin-bottom: 15px;">
-                            <?php echo htmlspecialchars($contentData['overview'] ?? 'No description available'); ?>
-                        </p>
-                        <p style="color: var(--text-secondary);">
-                            <strong>Rating:</strong> <?php echo $contentData['vote_average'] ?? 'N/A'; ?>/10<br>
-                            <strong>Release:</strong> <?php echo $contentData['release_date'] ?? $contentData['first_air_date'] ?? 'Unknown'; ?><br>
-                            <strong>Runtime:</strong> <?php echo $contentData['runtime'] ?? $contentData['episode_run_time'][0] ?? 'N/A'; ?> min
-                        </p>
-                    </div>
+                <div class="form-group">
+                    <label for="api-key-select">Select TMDB API Key</label>
+                    <select id="api-key-select" class="form-control" onchange="switchApiKey()">
+                        <option value="primary">Primary Key (***<?php echo substr($tmdbApiKey, -4); ?>)</option>
+                        <?php if (!empty($tmdbApiKey1)): ?><option value="backup1">Backup Key 1 (***<?php echo substr($tmdbApiKey1, -4); ?>)</option><?php endif; ?>
+                        <?php if (!empty($tmdbApiKey2)): ?><option value="backup2">Backup Key 2 (***<?php echo substr($tmdbApiKey2, -4); ?>)</option><?php endif; ?>
+                        <?php if (!empty($tmdbApiKey3)): ?><option value="backup3">Backup Key 3 (***<?php echo substr($tmdbApiKey3, -4); ?>)</option><?php endif; ?>
+                    </select>
+                    <p class="form-text">Current: <span id="current-api-status">Primary Key (***<?php echo substr($tmdbApiKey, -4); ?>)</span></p>
                 </div>
             </div>
             
-            <form method="POST" action="">
-                <input type="hidden" name="action" value="save_content">
-                <input type="hidden" name="content_type" value="<?php echo $_POST['content_type'] ?? 'movie'; ?>">
-                <input type="hidden" name="tmdb_id" value="<?php echo $contentData['id']; ?>">
-                
-                <div class="form-group">
-                    <label for="title">Title</label>
-                    <input type="text" id="title" name="title" 
-                           value="<?php echo htmlspecialchars($contentData['title'] ?? $contentData['name'] ?? ''); ?>" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="original_title">Original Title</label>
-                    <input type="text" id="original_title" name="original_title" 
-                           value="<?php echo htmlspecialchars($contentData['original_title'] ?? $contentData['original_name'] ?? ''); ?>">
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" name="description"><?php echo htmlspecialchars($contentData['overview'] ?? ''); ?></textarea>
-                </div>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="year">Year</label>
-                        <input type="number" id="year" name="year" 
-                               value="<?php echo date('Y', strtotime($contentData['release_date'] ?? $contentData['first_air_date'] ?? 'now')); ?>">
+            <div class="form-grid">
+                <!-- Movie Generator -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-film"></i> Movie Generator</h2>
                     </div>
-                    
                     <div class="form-group">
-                        <label for="runtime">Runtime (minutes)</label>
-                        <input type="number" id="runtime" name="runtime" 
-                               value="<?php echo $contentData['runtime'] ?? $contentData['episode_run_time'][0] ?? 0; ?>">
+                        <label for="movie-tmdb-id">TMDB Movie ID</label>
+                        <input type="number" id="movie-tmdb-id" class="form-control" placeholder="e.g., 550 (Fight Club)">
                     </div>
-                    
                     <div class="form-group">
-                        <label for="rating">Rating</label>
-                        <input type="number" step="0.1" id="rating" name="rating" 
-                               value="<?php echo $contentData['vote_average'] ?? 0; ?>">
+                        <label>Additional Servers</label>
+                        <div id="movie-servers" class="server-list">
+                            <!-- Server items will be added here -->
+                        </div>
+                        <button class="btn btn-primary" onclick="addServer('movie-servers')"><i class="fas fa-plus"></i> Add Server</button>
                     </div>
-                </div>
-                
-                <input type="hidden" name="poster_url" 
-                       value="https://image.tmdb.org/t/p/w500<?php echo $contentData['poster_path'] ?? ''; ?>">
-                <input type="hidden" name="backdrop_url" 
-                       value="https://image.tmdb.org/t/p/original<?php echo $contentData['backdrop_path'] ?? ''; ?>">
-                <input type="hidden" name="release_date" 
-                       value="<?php echo $contentData['release_date'] ?? $contentData['first_air_date'] ?? ''; ?>">
-                
-                <?php
-                $genres = array_column($contentData['genres'] ?? [], 'name');
-                foreach ($genres as $genre) {
-                    echo '<input type="hidden" name="genres[]" value="' . htmlspecialchars($genre) . '">';
-                }
-                ?>
-                
-                <div style="margin-top: 20px;">
-                    <label>
-                        <input type="checkbox" name="is_featured"> Mark as Featured
-                    </label>
-                    <label style="margin-left: 20px;">
-                        <input type="checkbox" name="is_trending"> Mark as Trending
-                    </label>
-                </div>
-                
-                <div style="margin-top: 30px;">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i>
-                        Save to Database
+                    <button class="btn btn-success" onclick="generateFromTMDB('movie')">
+                        <span class="loading" id="movie-loading" style="display: none;"></span>
+                        <i class="fas fa-cogs"></i> Generate Movie
                     </button>
                 </div>
-            </form>
+
+                <!-- TV Series Generator -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-tv"></i> TV Series Generator</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="series-tmdb-id">TMDB TV Series ID</label>
+                        <input type="number" id="series-tmdb-id" class="form-control" placeholder="e.g., 1399 (Game of Thrones)">
+                    </div>
+                    <div class="form-group">
+                        <label for="series-seasons">Seasons to Include</label>
+                        <input type="text" id="series-seasons" class="form-control" placeholder="e.g., 1,2,3 or leave empty for all">
+                    </div>
+                    <div class="form-group">
+                        <label>Additional Servers</label>
+                        <div id="series-servers" class="server-list">
+                            <!-- Server items will be added here -->
+                        </div>
+                        <button class="btn btn-primary" onclick="addServer('series-servers')"><i class="fas fa-plus"></i> Add Server</button>
+                    </div>
+                    <button class="btn btn-success" onclick="generateFromTMDB('series')">
+                        <span class="loading" id="series-loading" style="display: none;"></span>
+                        <i class="fas fa-cogs"></i> Generate Series
+                    </button>
+                </div>
+            </div>
+
+            <!-- TMDB Search -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-search"></i> TMDB Search & Preview</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="tmdb-search-query">Search Query</label>
+                        <input type="text" id="tmdb-search-query" class="form-control" placeholder="Search for movies or TV shows...">
+                    </div>
+                    <div class="form-group">
+                        <label for="search-subtype">Content Type</label>
+                        <select id="search-subtype" class="form-control">
+                            <option value="multi">All</option>
+                            <option value="movie">Movies</option>
+                            <option value="tv">TV Shows</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="searchTMDB()">
+                    <span class="loading" id="search-loading" style="display: none;"></span>
+                    <i class="fas fa-search"></i> Search TMDB
+                </button>
+                <div id="search-results"></div>
+            </div>
         </div>
+        <div id="status-container" style="position: fixed; top: 80px; right: 20px; z-index: 9999;"></div>
         <?php endif; ?>
     </main>
     
@@ -619,6 +639,154 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 sidebar.classList.remove('active');
             }
         });
+
+        // TMDB Generator Script
+        const TMDB_API_KEYS = {
+            'primary': '<?php echo $tmdbApiKey; ?>',
+            'backup1': '<?php echo $tmdbApiKey1; ?>',
+            'backup2': '<?php echo $tmdbApiKey2; ?>',
+            'backup3': '<?php echo $tmdbApiKey3; ?>'
+        };
+        let currentApiKey = 'primary';
+
+        function switchApiKey() {
+            const select = document.getElementById('api-key-select');
+            currentApiKey = select.value;
+            const status = document.getElementById('current-api-status');
+            status.textContent = `${select.options[select.selectedIndex].text} (Active)`;
+            console.log(`Switched to ${currentApiKey} API Key`);
+        }
+
+        function addServer(containerId) {
+            const container = document.getElementById(containerId);
+            const serverItem = document.createElement('div');
+            serverItem.className = 'server-item';
+            serverItem.innerHTML = `
+                <input type="text" placeholder="Server Name" class="server-name">
+                <input type="url" placeholder="${containerId.includes('series') ? 'Video URL Template (use {season} {episode})' : 'Video URL'}" class="server-url">
+                <button class="btn btn-danger btn-small" onclick="removeServer(this)">Remove</button>
+            `;
+            container.appendChild(serverItem);
+        }
+
+        function removeServer(button) {
+            button.parentElement.remove();
+        }
+
+        async function generateFromTMDB(type) {
+            const id = document.getElementById(`${type}-tmdb-id`).value;
+            const seasons = type === 'series' ? document.getElementById('series-seasons').value : '';
+            const serversContainer = document.getElementById(`${type}-servers`);
+            const servers = Array.from(serversContainer.querySelectorAll('.server-item')).map(item => ({
+                name: item.querySelector('.server-name').value,
+                url: item.querySelector('.server-url').value
+            })).filter(s => s.name && s.url);
+
+            if (!id) {
+                showStatus('TMDB ID is required.', 'error');
+                return;
+            }
+
+            const loadingSpinner = document.getElementById(`${type}-loading`);
+            loadingSpinner.style.display = 'inline-block';
+
+            try {
+                const response = await fetch('../api/admin_tmdb_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate',
+                        type: type,
+                        id: id,
+                        seasons: seasons,
+                        servers: servers,
+                        apiKey: TMDB_API_KEYS[currentApiKey]
+                    })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showStatus(result.message, 'success');
+                } else {
+                    showStatus(result.message, 'error');
+                }
+            } catch (error) {
+                showStatus('An error occurred: ' + error.message, 'error');
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        async function searchTMDB() {
+            const query = document.getElementById('tmdb-search-query').value;
+            const type = document.getElementById('search-subtype').value;
+            if (!query) return;
+
+            const loadingSpinner = document.getElementById('search-loading');
+            loadingSpinner.style.display = 'inline-block';
+            const resultsContainer = document.getElementById('search-results');
+            resultsContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('../api/admin_tmdb_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'search',
+                        query: query,
+                        type: type,
+                        apiKey: TMDB_API_KEYS[currentApiKey]
+                    })
+                });
+                const result = await response.json();
+
+                if(result.success && result.results) {
+                    result.results.slice(0, 10).forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'search-result-card';
+                        const title = item.title || item.name;
+                        const releaseDate = item.release_date || item.first_air_date || 'N/A';
+                        const posterPath = item.poster_path ? `https://image.tmdb.org/t/p/w200${item.poster_path}` : 'https://via.placeholder.com/100x150';
+                        const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
+
+                        card.innerHTML = `
+                            <img src="${posterPath}" alt="${title}">
+                            <div class="result-info">
+                                <strong>${title}</strong>
+                                <p>(${(new Date(releaseDate).getFullYear() || 'N/A')}) - ${mediaType.toUpperCase()}</p>
+                                <button class="btn btn-primary btn-small" onclick="selectContent('${mediaType}', ${item.id})">Select</button>
+                            </div>
+                        `;
+                        resultsContainer.appendChild(card);
+                    });
+                } else {
+                    resultsContainer.innerHTML = `<p>${result.message || 'Error searching TMDB.'}</p>`;
+                }
+            } catch (error) {
+                resultsContainer.innerHTML = '<p>An error occurred while searching.</p>';
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        function selectContent(type, id) {
+            if (type === 'movie') {
+                document.getElementById('movie-tmdb-id').value = id;
+                showStatus(`Selected movie ID: ${id}. You can now generate the movie.`, 'success');
+            } else if (type === 'tv') { // TMDB search uses 'tv' for series
+                document.getElementById('series-tmdb-id').value = id;
+                showStatus(`Selected series ID: ${id}. You can now generate the series.`, 'success');
+            }
+        }
+
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('status-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type === 'error' ? 'danger' : 'success'}`;
+            alert.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            container.appendChild(alert);
+            setTimeout(() => alert.remove(), 5000);
+        }
+
     </script>
 </body>
 </html>

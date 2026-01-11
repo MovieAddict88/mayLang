@@ -13,9 +13,15 @@ $messageType = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($_POST['action'] === 'update_settings') {
         $tmdbKey = sanitizeInput($_POST['tmdb_api_key'] ?? '');
+        $tmdbKey1 = sanitizeInput($_POST['tmdb_api_key_backup1'] ?? '');
+        $tmdbKey2 = sanitizeInput($_POST['tmdb_api_key_backup2'] ?? '');
+        $tmdbKey3 = sanitizeInput($_POST['tmdb_api_key_backup3'] ?? '');
         $youtubeKey = sanitizeInput($_POST['youtube_api_key'] ?? '');
         
         updateSetting('tmdb_api_key', $tmdbKey);
+        updateSetting('tmdb_api_key_backup1', $tmdbKey1);
+        updateSetting('tmdb_api_key_backup2', $tmdbKey2);
+        updateSetting('tmdb_api_key_backup3', $tmdbKey3);
         updateSetting('youtube_api_key', $youtubeKey);
         
         logAdminAction($_SESSION['user_id'], 'update_settings', 'settings', null, 'Updated API keys');
@@ -71,6 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 // Get current settings
 $tmdbApiKey = getSetting('tmdb_api_key', '');
+$tmdbApiKey1 = getSetting('tmdb_api_key_backup1', '');
+$tmdbApiKey2 = getSetting('tmdb_api_key_backup2', '');
+$tmdbApiKey3 = getSetting('tmdb_api_key_backup3', '');
 $youtubeApiKey = getSetting('youtube_api_key', '');
 
 // Get all embed servers
@@ -493,6 +502,45 @@ $embedServers = $db->fetchAll(
                     <small style="color: var(--text-secondary); display: block; margin-top: 8px;">
                         Get your API key from <a href="https://www.themoviedb.org/settings/api" target="_blank" style="color: var(--primary);">TMDB Settings</a>
                     </small>
+                </div>
+                <div class="form-group">
+                    <label for="tmdb_api_key_backup1">
+                        <i class="fas fa-film"></i>
+                        TMDB API Key (Backup 1)
+                    </label>
+                    <input
+                        type="text"
+                        id="tmdb_api_key_backup1"
+                        name="tmdb_api_key_backup1"
+                        value="<?php echo htmlspecialchars($tmdbApiKey1); ?>"
+                        placeholder="Enter your backup TMDB API key"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="tmdb_api_key_backup2">
+                        <i class="fas fa-film"></i>
+                        TMDB API Key (Backup 2)
+                    </label>
+                    <input
+                        type="text"
+                        id="tmdb_api_key_backup2"
+                        name="tmdb_api_key_backup2"
+                        value="<?php echo htmlspecialchars($tmdbApiKey2); ?>"
+                        placeholder="Enter your backup TMDB API key"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="tmdb_api_key_backup3">
+                        <i class="fas fa-film"></i>
+                        TMDB API Key (Backup 3)
+                    </label>
+                    <input
+                        type="text"
+                        id="tmdb_api_key_backup3"
+                        name="tmdb_api_key_backup3"
+                        value="<?php echo htmlspecialchars($tmdbApiKey3); ?>"
+                        placeholder="Enter your backup TMDB API key"
+                    >
                 </div>
                 
                 <div class="form-group">
