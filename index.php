@@ -1,4 +1,17 @@
-      <!DOCTYPE html>
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/src/bootstrap.php';
+
+if (!app_is_installed()) {
+    redirect('/install/');
+}
+
+$user = auth_user();
+
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2928,9 +2941,15 @@
             <button class="theme-toggle" id="theme-toggle">
                 <i class="fas fa-moon"></i>
             </button>
-            <div class="user-profile">
-                <i class="fas fa-user"></i>
-            </div>
+            <?php if ($user): ?>
+                <a class="user-profile" href="<?php echo e(($user['role'] ?? '') === 'admin' ? '/admin/' : '/auth/logout.php'); ?>" title="<?php echo e(($user['role'] ?? '') === 'admin' ? 'Admin Dashboard' : 'Logout'); ?>">
+                    <i class="fas fa-user"></i>
+                </a>
+            <?php else: ?>
+                <a class="user-profile" href="/auth/login.php?next=/" title="Login / Register">
+                    <i class="fas fa-user"></i>
+                </a>
+            <?php endif; ?>
             <button class="hamburger-btn" id="hamburger-btn">
                 <i class="fas fa-bars"></i>
             </button>
@@ -3799,43 +3818,25 @@
                 elements.progressBarContainer.style.display = 'block';
                 elements.loadingSpinner.style.display = 'none';
                 
-                const primaryUrl = "https://github.com/MovieAddict88/Movie-Source/raw/main/playlist.json";
-                const fallbackUrls = [
-                    "https://raw.githubusercontent.com/MovieAddict88/Movie-Source/main/playlist.json",
-                    "https://cdn.jsdelivr.net/gh/MovieAddict88/Movie-Source@main/playlist.json",
-                    "./playlist.json",
-                    "./data/playlist.json"
-                ];
+                // Database-backed API (pure PHP + MySQL)
+                const apiUrl = "./api/playlist.php";
                 
-                const allCandidateUrls = [primaryUrl, ...fallbackUrls];
-                for (const candidate of allCandidateUrls) {
-                    try {
-                        console.log(`🔎 Trying segmented playlists from: ${getBasePathFromUrl(candidate)}`);
-                        const segmented = await tryFetchSegmented(candidate);
-                        if (segmented && segmented.Categories && segmented.Categories.length > 0) {
-                            cineData = segmented;
-                            await dbUtil.set(db, PLAYLIST_KEY, cineData);
-                            console.log(`✅ Loaded and cached segmented data from base: ${getBasePathFromUrl(candidate)}`);
-                            return;
-                        }
-                    } catch (err) {
-                        console.warn(`⚠️ Segmented fetch failed for ${candidate}`, err);
+                try {
+                    console.log(`🔄 Fetching playlist from API: ${apiUrl}`);
+                    elements.progressBarText.textContent = `Loading from database...`;
+                    const response = await fetch(withCacheBuster(apiUrl));
+                    if (!response.ok) {
+                        throw new Error(`API request failed: ${response.status}`);
                     }
-                    try {
-                        console.log(`🔄 Trying monolithic playlist: ${candidate}`);
-                        elements.progressBarText.textContent = `Trying monolithic playlist...`;
-                        const response = await fetch(withCacheBuster(candidate));
-                        if (response.ok) {
-                            cineData = await response.json();
-                            await dbUtil.set(db, PLAYLIST_KEY, cineData);
-                            console.log(`✅ Loaded and cached data from: ${candidate}`);
-                            return;
-                        }
-                    } catch (err) {
-                        console.warn(`⚠️ Monolithic fetch failed for ${candidate}`, err);
-                    }
+                    cineData = await response.json();
+                    await dbUtil.set(db, PLAYLIST_KEY, cineData);
+                    console.log(`✅ Loaded and cached data from API: ${apiUrl}`);
+                    return;
+                } catch (err) {
+                    console.warn(`⚠️ API fetch failed`, err);
                 }
-                
+
+
                 throw new Error("All data sources failed");
                 
             } catch (err) {
