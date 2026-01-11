@@ -36,7 +36,7 @@ if (file_exists('includes/config.php')) {
     }
 }
 
-$step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
+$step = isset($_REQUEST['step']) ? (int)$_REQUEST['step'] : 1;
 $error = '';
 $success = '';
 
@@ -580,6 +580,7 @@ $all_requirements_met = !in_array(false, $requirements, true);
                 <?php endif; ?>
                 
                 <form method="POST">
+                    <input type="hidden" name="step" value="1">
                     <div class="btn-group">
                         <button type="submit" class="btn btn-primary" <?php echo !$all_requirements_met ? 'disabled' : ''; ?>>
                             Continue <i class="fas fa-arrow-right"></i>
@@ -594,6 +595,7 @@ $all_requirements_met = !in_array(false, $requirements, true);
                 </div>
                 
                 <form method="POST">
+                    <input type="hidden" name="step" value="2">
                     <div class="form-group">
                         <label for="db_host">Database Host</label>
                         <input type="text" id="db_host" name="db_host" value="localhost" required>
@@ -642,6 +644,7 @@ $all_requirements_met = !in_array(false, $requirements, true);
                 </div>
                 
                 <form method="POST">
+                    <input type="hidden" name="step" value="3">
                     <p style="color: var(--light); margin-bottom: 20px;">
                         Click the button below to import the database schema.
                     </p>
@@ -660,6 +663,7 @@ $all_requirements_met = !in_array(false, $requirements, true);
                 </div>
                 
                 <form method="POST">
+                    <input type="hidden" name="step" value="4">
                     <div class="form-group">
                         <label for="admin_username">Admin Username</label>
                         <input type="text" id="admin_username" name="admin_username" value="admin" required>
@@ -690,6 +694,7 @@ $all_requirements_met = !in_array(false, $requirements, true);
                 </div>
                 
                 <form method="POST">
+                    <input type="hidden" name="step" value="5">
                     <p style="color: var(--light); margin-bottom: 20px;">
                         This will create the config.php file with your settings.
                     </p>
