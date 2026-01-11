@@ -6,6 +6,10 @@
  * After installation, DELETE this file for security
  */
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Check if already installed
 if (file_exists('includes/config.php')) {
     $config_content = file_get_contents('includes/config.php');
@@ -55,31 +59,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $site_name = $_POST['site_name'] ?? 'CineCraze';
         
         // Test database connection
+        $pdo = null;
         try {
-            $dsn = "mysql:host={$host};charset=utf8mb4";
+            // First, try connecting directly to the database
+            $dsn = "mysql:host={$host};dbname={$name};charset=utf8mb4";
             $pdo = new PDO($dsn, $user, $pass);
-            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             
-            // Check if database exists, create if not
-            $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            $pdo->exec("USE `{$name}`");
-            
-            // Store credentials in session for next step
-            session_start();
-            $_SESSION['install_db_host'] = $host;
-            $_SESSION['install_db_name'] = $name;
-            $_SESSION['install_db_user'] = $user;
-            $_SESSION['install_db_pass'] = $pass;
-            $_SESSION['install_site_url'] = $site_url;
-            $_SESSION['install_site_name'] = $site_name;
-            
-            $step = 3;
         } catch (PDOException $e) {
-            $error = "Database connection failed: " . $e->getMessage();
+            // If direct connection fails, try connecting to MySQL without dbname to create it
+            try {
+                $dsn = "mysql:host={$host};charset=utf8mb4";
+                $pdo = new PDO($dsn, $user, $pass);
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                // Create the database
+                $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            } catch (PDOException $e) {
+                $error = "Database error: " . $e->getMessage() . "<br><br><strong>Troubleshooting Tips:</strong><br>1. Double-check your database credentials.<br>2. Ensure the database user has the necessary permissions (CREATE DATABASE, ALL PRIVILEGES).<br>3. Verify that your hosting provider allows remote database connections if applicable.";
+            }
+        }
+
+        if ($pdo) {
+            // If we have a connection, proceed
+            try {
+                $pdo->exec("USE `{$name}`");
+
+                // Store credentials in session for next step
+                $_SESSION['install_db_host'] = $host;
+                $_SESSION['install_db_name'] = $name;
+                $_SESSION['install_db_user'] = $user;
+                $_SESSION['install_db_pass'] = $pass;
+                $_SESSION['install_site_url'] = $site_url;
+                $_SESSION['install_site_name'] = $site_name;
+
+                $step = 3;
+
+            } catch (PDOException $e) {
+                 $error = "Database error: " . $e->getMessage() . "<br><br><strong>Troubleshooting Tips:</strong><br>1. Double-check your database credentials.<br>2. Ensure the database user has the necessary permissions (CREATE DATABASE, ALL PRIVILEGES).<br>3. Verify that your hosting provider allows remote database connections if applicable.";
+            }
         }
     } elseif ($step === 3) {
         // Step 3: Import database schema
-        session_start();
         
         $host = $_SESSION['install_db_host'];
         $name = $_SESSION['install_db_name'];
@@ -114,7 +135,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($step === 4) {
         // Step 4: Create admin account
-        session_start();
         
         $admin_email = $_POST['admin_email'] ?? '';
         $admin_password = $_POST['admin_password'] ?? '';
@@ -150,7 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($step === 5) {
         // Step 5: Write config file
-        session_start();
         
         $host = $_SESSION['install_db_host'];
         $name = $_SESSION['install_db_name'];
