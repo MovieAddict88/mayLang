@@ -1,0 +1,41 @@
+# Environment and configuration
+includes/config.php
+.env
+.env.local
+
+# Uploads and cache
+uploads/
+cache/
+temp/
+
+# System files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+error_log
+debug.log
+
+# Backup files
+*.bak
+*.backup
+*.sql.gz
+
+# Dependencies (if using Composer)
+/vendor/
+composer.lock
+
+# Node modules (if using npm/yarn)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build files
+/dist/
+/build/
