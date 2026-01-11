@@ -18,11 +18,13 @@ A powerful PHP/MySQL streaming platform with user authentication, admin panel, a
 
 ## 🚀 Quick Start
 
-### Option 1: Web Installer (Easiest)
+### Option 1: Web Installer (Easiest) ⭐ RECOMMENDED
 1. Upload all files to your hosting
 2. Visit `http://yourdomain.com/install.php`
-3. Follow the wizard
+3. Follow the 6-step wizard
 4. Delete `install.php` when done
+
+**Note:** If you experience any issues with the installer, see [INSTALLER_TROUBLESHOOTING.md](INSTALLER_TROUBLESHOOTING.md)
 
 ### Option 2: Manual Setup
 1. Create MySQL database

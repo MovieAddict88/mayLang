@@ -36,7 +36,16 @@ if (file_exists('includes/config.php')) {
     }
 }
 
-$step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
+// Start session at the beginning
+session_start();
+
+// Get current step from session or URL
+if (isset($_SESSION['install_step'])) {
+    $step = (int)$_SESSION['install_step'];
+} else {
+    $step = isset($_GET['step']) ? (int)$_GET['step'] : 1;
+}
+
 $error = '';
 $success = '';
 
@@ -45,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($step === 1) {
         // Step 1: Check requirements
         $step = 2;
+        $_SESSION['install_step'] = $step;
     } elseif ($step === 2) {
         // Step 2: Database configuration
         $host = $_POST['db_host'] ?? 'localhost';
@@ -65,7 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->exec("USE `{$name}`");
             
             // Store credentials in session for next step
-            session_start();
             $_SESSION['install_db_host'] = $host;
             $_SESSION['install_db_name'] = $name;
             $_SESSION['install_db_user'] = $user;
@@ -74,12 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['install_site_name'] = $site_name;
             
             $step = 3;
+            $_SESSION['install_step'] = $step;
         } catch (PDOException $e) {
             $error = "Database connection failed: " . $e->getMessage();
         }
     } elseif ($step === 3) {
         // Step 3: Import database schema
-        session_start();
         
         $host = $_SESSION['install_db_host'];
         $name = $_SESSION['install_db_name'];
@@ -109,12 +118,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $success = "Database tables created successfully!";
             $step = 4;
+            $_SESSION['install_step'] = $step;
         } catch (PDOException $e) {
             $error = "Database import failed: " . $e->getMessage();
         }
     } elseif ($step === 4) {
         // Step 4: Create admin account
-        session_start();
         
         $admin_email = $_POST['admin_email'] ?? '';
         $admin_password = $_POST['admin_password'] ?? '';
@@ -144,13 +153,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$admin_username, $admin_email, $hashed_password]);
                 
                 $step = 5;
+                $_SESSION['install_step'] = $step;
             } catch (PDOException $e) {
                 $error = "Failed to create admin account: " . $e->getMessage();
             }
         }
     } elseif ($step === 5) {
         // Step 5: Write config file
-        session_start();
         
         $host = $_SESSION['install_db_host'];
         $name = $_SESSION['install_db_name'];
@@ -218,10 +227,11 @@ define('INSTALLED', true);
             @mkdir('uploads/posters', 0755, true);
             @mkdir('uploads/backdrops', 0755, true);
             
-            // Clear installation session
-            session_destroy();
-            
             $step = 6;
+            $_SESSION['install_step'] = $step;
+            
+            // Mark installation as complete
+            $_SESSION['install_complete'] = true;
         } else {
             $error = "Failed to write config.php. Please check file permissions.";
         }
