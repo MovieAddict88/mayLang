@@ -1,42 +1,3 @@
-<?php
-require_once 'includes/config.php';
-
-// Check if user is logged in
-$isLoggedIn = false;
-$userId = null;
-$userName = '';
-$userEmail = '';
-
-if (isset($_COOKIE['login_token']) && !empty($_COOKIE['login_token'])) {
-    require_once 'includes/Database.php';
-    $db = Database::getInstance();
-    
-    $user = $db->fetchOne(
-        "SELECT u.* FROM users u 
-         JOIN user_sessions s ON u.id = s.user_id 
-         WHERE s.token = ? AND s.expires_at > NOW() AND u.is_active = 1",
-        [$_COOKIE['login_token']]
-    );
-    
-    if ($user) {
-        $isLoggedIn = true;
-        $userId = $user['id'];
-        $userName = $user['username'];
-        $userEmail = $user['email'];
-        
-        // Update session activity
-        $db->query(
-            "UPDATE user_sessions SET last_activity = NOW() WHERE token = ?",
-            [$_COOKIE['login_token']]
-        );
-    }
-}
-
-// If not logged in, redirect to login or show modal
-if (!$isLoggedIn) {
-    // Will show login modal via JavaScript
-}
-?>
       <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8534,6 +8495,5 @@ playerInstance.on('ready', event => {
 
     </script>
 
-<script src="/js/api-integration.js"></script>
 </body>
 </h
