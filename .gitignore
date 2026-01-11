@@ -1,0 +1,39 @@
+# CineCraze .gitignore
+
+# Configuration files with sensitive data
+config/database.php
+
+# User uploads
+uploads/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Environment files
+.env
+.env.local
+
+# Node modules (if using any build tools)
+node_modules/
+package-lock.json
+
+# Vendor (if using Composer)
+vendor/
+
+# Installation directory (after setup)
+# Uncomment after installation is complete
+# install/
